@@ -1,0 +1,959 @@
+\
+EXAM CLIENT APP - STEP BY STEP WITH FULL COPY-PASTE CODE
+========================================================
+
+Project:
+Client-side Exam Builder and Exam Runner
+
+Technologies:
+- HTML
+- CSS
+- JavaScript
+- ES Modules
+- OOP Classes
+- JSON Objects
+- localStorage
+- Bootstrap 5
+
+What the app does:
+1. Teacher creates an exam.
+2. Teacher adds questions.
+3. Each question has 4 answers.
+4. Teacher selects the correct answer.
+5. Exam is saved in localStorage.
+6. Saved exams are displayed.
+7. Student can run the exam.
+8. App calculates the score.
+
+
+========================================================
+STEP 1 - CREATE PROJECT FOLDER
+========================================================
+
+Create this folder structure:
+
+exam-client-app/
+│
+├── index.html
+├── css/
+│   └── style.css
+└── js/
+    ├── models/
+    │   ├── Exam.js
+    │   └── Question.js
+    ├── services/
+    │   └── ExamService.js
+    ├── ui/
+    │   └── ExamUI.js
+    └── app.js
+
+
+========================================================
+STEP 2 - CREATE index.html
+========================================================
+
+File:
+index.html
+
+Copy-paste this code:
+
+--------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Builder App</title>
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="container py-4">
+
+    <h1 class="text-center mb-4">Exam Builder & Runner</h1>
+
+    <div class="row">
+
+      <!-- LEFT SIDE: CREATE EXAM -->
+      <div class="col-md-5">
+
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            Create Exam
+          </div>
+
+          <div class="card-body">
+
+            <div class="mb-3">
+              <label class="form-label">Exam Title</label>
+              <input
+                id="examTitle"
+                type="text"
+                class="form-control"
+                placeholder="Example: JavaScript Basics"
+              >
+            </div>
+
+            <hr>
+
+            <h5>Add Question</h5>
+
+            <div class="mb-3">
+              <label class="form-label">Question Text</label>
+              <input
+                id="questionText"
+                type="text"
+                class="form-control"
+                placeholder="Example: What is const?"
+              >
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Answer 1</label>
+              <input id="answer1" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Answer 2</label>
+              <input id="answer2" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Answer 3</label>
+              <input id="answer3" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Answer 4</label>
+              <input id="answer4" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Correct Answer Number</label>
+              <input
+                id="correctAnswer"
+                type="number"
+                class="form-control"
+                min="1"
+                max="4"
+                placeholder="1-4"
+              >
+            </div>
+
+            <button id="addQuestionBtn" class="btn btn-success w-100 mb-2">
+              Add Question
+            </button>
+
+            <button id="saveExamBtn" class="btn btn-primary w-100">
+              Save Exam
+            </button>
+
+            <div id="builderMessage" class="mt-3"></div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDE: SAVED EXAMS -->
+      <div class="col-md-7">
+
+        <div class="card mb-4">
+          <div class="card-header bg-dark text-white">
+            Saved Exams
+          </div>
+
+          <div class="card-body">
+            <div id="examList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-warning">
+            Run Exam
+          </div>
+
+          <div class="card-body">
+            <div id="examRunner">
+              <p class="text-muted">Choose an exam to run.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Main JavaScript file -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
+--------------------------------------------------------
+
+
+========================================================
+STEP 3 - CREATE css/style.css
+========================================================
+
+File:
+css/style.css
+
+Copy-paste this code:
+
+--------------------------------------------------------
+body {
+  background-color: #f5f5f5;
+}
+
+.card {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.question-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #fff;
+}
+
+.answer-label {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.exam-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 12px;
+  background-color: #fff;
+}
+
+.small-muted {
+  font-size: 0.9rem;
+  color: #666;
+}
+--------------------------------------------------------
+
+
+========================================================
+STEP 4 - CREATE Question CLASS
+========================================================
+
+File:
+js/models/Question.js
+
+Copy-paste this code:
+
+--------------------------------------------------------
+export class Question {
+  constructor(text, answers, correctAnswerIndex) {
+    this.id = crypto.randomUUID();
+    this.text = text;
+    this.answers = answers;
+    this.correctAnswerIndex = correctAnswerIndex;
+  }
+
+  isCorrect(userAnswerIndex) {
+    return userAnswerIndex === this.correctAnswerIndex;
+  }
+}
+--------------------------------------------------------
+
+
+Explanation:
+- Each question has text.
+- Each question has 4 answers.
+- correctAnswerIndex is zero-based.
+- If teacher writes 1, we save it as 0.
+- If teacher writes 2, we save it as 1.
+
+
+========================================================
+STEP 5 - CREATE Exam CLASS
+========================================================
+
+File:
+js/models/Exam.js
+
+Copy-paste this code:
+
+--------------------------------------------------------
+export class Exam {
+  constructor(title) {
+    this.id = crypto.randomUUID();
+    this.title = title;
+    this.questions = [];
+    this.createdAt = new Date().toISOString();
+  }
+
+  addQuestion(question) {
+    this.questions.push(question);
+  }
+
+  getQuestionCount() {
+    return this.questions.length;
+  }
+}
+--------------------------------------------------------
+
+
+Explanation:
+- Exam is an object.
+- It has a title.
+- It has many questions.
+- addQuestion() adds a question into the array.
+
+
+========================================================
+STEP 6 - CREATE ExamService
+========================================================
+
+File:
+js/services/ExamService.js
+
+Copy-paste this code:
+
+--------------------------------------------------------
+import { Exam } from "../models/Exam.js";
+import { Question } from "../models/Question.js";
+
+export class ExamService {
+  constructor() {
+    this.storageKey = "exams";
+  }
+
+  getAllExams() {
+    const data = localStorage.getItem(this.storageKey);
+
+    if (!data) {
+      return [];
+    }
+
+    const plainExams = JSON.parse(data);
+
+    return plainExams.map(examData => {
+      const exam = new Exam(examData.title);
+
+      exam.id = examData.id;
+      exam.createdAt = examData.createdAt;
+
+      exam.questions = examData.questions.map(questionData => {
+        const question = new Question(
+          questionData.text,
+          questionData.answers,
+          questionData.correctAnswerIndex
+        );
+
+        question.id = questionData.id;
+
+        return question;
+      });
+
+      return exam;
+    });
+  }
+
+  saveExam(exam) {
+    const exams = this.getAllExams();
+
+    exams.push(exam);
+
+    localStorage.setItem(this.storageKey, JSON.stringify(exams));
+  }
+
+  deleteExam(examId) {
+    const exams = this.getAllExams();
+
+    const filteredExams = exams.filter(exam => exam.id !== examId);
+
+    localStorage.setItem(this.storageKey, JSON.stringify(filteredExams));
+  }
+
+  getExamById(examId) {
+    const exams = this.getAllExams();
+
+    return exams.find(exam => exam.id === examId);
+  }
+
+  clearAllExams() {
+    localStorage.removeItem(this.storageKey);
+  }
+}
+--------------------------------------------------------
+
+
+Important teaching point:
+localStorage saves strings only.
+
+So we save objects like this:
+
+JSON.stringify(exams)
+
+And load them like this:
+
+JSON.parse(data)
+
+Important OOP point:
+After JSON.parse(), we get plain objects, not real Exam/Question class instances.
+
+That is why we rebuild the objects:
+
+new Exam(...)
+new Question(...)
+
+
+========================================================
+STEP 7 - CREATE ExamUI
+========================================================
+
+File:
+js/ui/ExamUI.js
+
+Copy-paste this code:
+
+--------------------------------------------------------
+export class ExamUI {
+  constructor(examService) {
+    this.examService = examService;
+
+    this.examListElement = document.getElementById("examList");
+    this.examRunnerElement = document.getElementById("examRunner");
+    this.builderMessageElement = document.getElementById("builderMessage");
+  }
+
+  showBuilderMessage(message, type = "success") {
+    this.builderMessageElement.innerHTML = `
+      <div class="alert alert-${type}">
+        ${message}
+      </div>
+    `;
+  }
+
+  clearBuilderMessage() {
+    this.builderMessageElement.innerHTML = "";
+  }
+
+  renderExamList() {
+    const exams = this.examService.getAllExams();
+
+    this.examListElement.innerHTML = "";
+
+    if (exams.length === 0) {
+      this.examListElement.innerHTML = `
+        <p class="text-muted">No exams saved yet.</p>
+      `;
+      return;
+    }
+
+    exams.forEach(exam => {
+      const div = document.createElement("div");
+      div.className = "exam-card";
+
+      div.innerHTML = `
+        <h5>${exam.title}</h5>
+
+        <p class="small-muted">
+          Questions: ${exam.getQuestionCount()}
+        </p>
+
+        <p class="small-muted">
+          Created: ${new Date(exam.createdAt).toLocaleString()}
+        </p>
+
+        <button
+          class="btn btn-sm btn-success run-btn"
+          data-id="${exam.id}">
+          Run Exam
+        </button>
+
+        <button
+          class="btn btn-sm btn-danger delete-btn"
+          data-id="${exam.id}">
+          Delete
+        </button>
+      `;
+
+      this.examListElement.appendChild(div);
+    });
+  }
+
+  renderExamRunner(exam) {
+    if (!exam) {
+      this.examRunnerElement.innerHTML = `
+        <div class="alert alert-danger">
+          Exam not found.
+        </div>
+      `;
+      return;
+    }
+
+    if (exam.questions.length === 0) {
+      this.examRunnerElement.innerHTML = `
+        <div class="alert alert-warning">
+          This exam has no questions.
+        </div>
+      `;
+      return;
+    }
+
+    this.examRunnerElement.innerHTML = `
+      <h4>${exam.title}</h4>
+      <p class="text-muted">
+        Answer all questions and submit the exam.
+      </p>
+    `;
+
+    exam.questions.forEach((question, questionIndex) => {
+      const questionDiv = document.createElement("div");
+      questionDiv.className = "question-box";
+
+      questionDiv.innerHTML = `
+        <h5>${questionIndex + 1}. ${question.text}</h5>
+
+        ${question.answers.map((answer, answerIndex) => `
+          <label class="answer-label">
+            <input
+              type="radio"
+              name="question-${questionIndex}"
+              value="${answerIndex}">
+            ${answer}
+          </label>
+        `).join("")}
+      `;
+
+      this.examRunnerElement.appendChild(questionDiv);
+    });
+
+    const submitButton = document.createElement("button");
+    submitButton.className = "btn btn-primary";
+    submitButton.textContent = "Submit Exam";
+
+    submitButton.addEventListener("click", () => {
+      this.checkExam(exam);
+    });
+
+    this.examRunnerElement.appendChild(submitButton);
+  }
+
+  checkExam(exam) {
+    let score = 0;
+
+    exam.questions.forEach((question, questionIndex) => {
+      const selectedAnswer = document.querySelector(
+        `input[name="question-${questionIndex}"]:checked`
+      );
+
+      if (!selectedAnswer) {
+        return;
+      }
+
+      const userAnswerIndex = Number(selectedAnswer.value);
+
+      if (question.isCorrect(userAnswerIndex)) {
+        score++;
+      }
+    });
+
+    const resultDiv = document.createElement("div");
+    resultDiv.className = "alert alert-info mt-3";
+
+    resultDiv.innerHTML = `
+      <h5>Exam Result</h5>
+      <p>Score: ${score} / ${exam.questions.length}</p>
+      <p>Percent: ${Math.round((score / exam.questions.length) * 100)}%</p>
+    `;
+
+    this.examRunnerElement.appendChild(resultDiv);
+  }
+}
+--------------------------------------------------------
+
+
+========================================================
+STEP 8 - CREATE app.js
+========================================================
+
+File:
+js/app.js
+
+Copy-paste this code:
+
+--------------------------------------------------------
+import { Exam } from "./models/Exam.js";
+import { Question } from "./models/Question.js";
+import { ExamService } from "./services/ExamService.js";
+import { ExamUI } from "./ui/ExamUI.js";
+
+const examService = new ExamService();
+const examUI = new ExamUI(examService);
+
+let currentExam = null;
+
+const examTitleInput = document.getElementById("examTitle");
+const questionTextInput = document.getElementById("questionText");
+
+const answer1Input = document.getElementById("answer1");
+const answer2Input = document.getElementById("answer2");
+const answer3Input = document.getElementById("answer3");
+const answer4Input = document.getElementById("answer4");
+
+const correctAnswerInput = document.getElementById("correctAnswer");
+
+const addQuestionBtn = document.getElementById("addQuestionBtn");
+const saveExamBtn = document.getElementById("saveExamBtn");
+
+const examListElement = document.getElementById("examList");
+
+addQuestionBtn.addEventListener("click", () => {
+  const title = examTitleInput.value.trim();
+  const questionText = questionTextInput.value.trim();
+
+  const answers = [
+    answer1Input.value.trim(),
+    answer2Input.value.trim(),
+    answer3Input.value.trim(),
+    answer4Input.value.trim()
+  ];
+
+  const correctAnswerNumber = Number(correctAnswerInput.value);
+
+  if (!title) {
+    examUI.showBuilderMessage("Please enter exam title.", "danger");
+    return;
+  }
+
+  if (!questionText) {
+    examUI.showBuilderMessage("Please enter question text.", "danger");
+    return;
+  }
+
+  if (answers.some(answer => answer === "")) {
+    examUI.showBuilderMessage("Please fill all 4 answers.", "danger");
+    return;
+  }
+
+  if (correctAnswerNumber < 1 || correctAnswerNumber > 4) {
+    examUI.showBuilderMessage("Correct answer must be a number from 1 to 4.", "danger");
+    return;
+  }
+
+  if (!currentExam) {
+    currentExam = new Exam(title);
+  }
+
+  const correctAnswerIndex = correctAnswerNumber - 1;
+
+  const question = new Question(
+    questionText,
+    answers,
+    correctAnswerIndex
+  );
+
+  currentExam.addQuestion(question);
+
+  examUI.showBuilderMessage(
+    `Question added. Current exam has ${currentExam.getQuestionCount()} question(s).`,
+    "success"
+  );
+
+  clearQuestionInputs();
+});
+
+saveExamBtn.addEventListener("click", () => {
+  if (!currentExam) {
+    examUI.showBuilderMessage("Create an exam and add at least one question first.", "danger");
+    return;
+  }
+
+  if (currentExam.getQuestionCount() === 0) {
+    examUI.showBuilderMessage("Cannot save exam without questions.", "danger");
+    return;
+  }
+
+  examService.saveExam(currentExam);
+
+  examUI.showBuilderMessage("Exam saved successfully.", "success");
+
+  currentExam = null;
+
+  examTitleInput.value = "";
+
+  examUI.renderExamList();
+});
+
+examListElement.addEventListener("click", event => {
+  const examId = event.target.dataset.id;
+
+  if (event.target.classList.contains("run-btn")) {
+    const exam = examService.getExamById(examId);
+
+    examUI.renderExamRunner(exam);
+  }
+
+  if (event.target.classList.contains("delete-btn")) {
+    const confirmed = confirm("Are you sure you want to delete this exam?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    examService.deleteExam(examId);
+
+    examUI.renderExamList();
+  }
+});
+
+function clearQuestionInputs() {
+  questionTextInput.value = "";
+
+  answer1Input.value = "";
+  answer2Input.value = "";
+  answer3Input.value = "";
+  answer4Input.value = "";
+
+  correctAnswerInput.value = "";
+}
+
+examUI.renderExamList();
+--------------------------------------------------------
+
+
+========================================================
+STEP 9 - HOW TO RUN THE APP
+========================================================
+
+Important:
+Because this app uses ES Modules, do not open index.html directly
+with file double-click.
+
+Use a local server.
+
+Option 1 - VS Code Live Server:
+1. Install Live Server extension.
+2. Right click index.html.
+3. Click "Open with Live Server".
+
+Option 2 - Python server:
+Open terminal inside project folder and run:
+
+python -m http.server 5500
+
+Then open browser:
+
+http://localhost:5500
+
+
+========================================================
+STEP 10 - TEST DATA FOR CLASS DEMO
+========================================================
+
+Exam title:
+
+JavaScript Basics
+
+Question 1:
+
+What is const?
+
+Answers:
+1. A variable that can be reassigned
+2. A variable that cannot be reassigned
+3. A loop
+4. A CSS property
+
+Correct answer:
+2
+
+Question 2:
+
+What does DOM mean?
+
+Answers:
+1. Document Object Model
+2. Data Object Method
+3. Digital Output Mode
+4. Design Object Map
+
+Correct answer:
+1
+
+Question 3:
+
+Which method saves data in localStorage?
+
+Answers:
+1. localStorage.save()
+2. localStorage.setItem()
+3. localStorage.insert()
+4. localStorage.push()
+
+Correct answer:
+2
+
+
+========================================================
+STEP 11 - CLASSROOM EXPLANATION FLOW
+========================================================
+
+Part 1:
+Start with the JSON object.
+
+Explain:
+An exam is an object.
+A question is an object.
+Answers are an array.
+
+Part 2:
+Move to OOP.
+
+Explain:
+Question class represents one question.
+Exam class represents one exam.
+
+Part 3:
+Move to modules.
+
+Explain:
+Each class is in a separate file.
+We use export and import.
+
+Part 4:
+Move to localStorage.
+
+Explain:
+Browser storage can save simple data.
+Objects must be converted to JSON strings.
+
+Part 5:
+Move to UI.
+
+Explain:
+ExamUI is responsible only for display.
+ExamService is responsible only for data.
+app.js connects everything.
+
+Part 6:
+Run the exam.
+
+Explain:
+Radio buttons allow one answer per question.
+The app compares selected answer with correctAnswerIndex.
+
+
+========================================================
+STEP 12 - STUDENT SELF-WORK TASKS
+========================================================
+
+Task 1:
+Add student name before starting the exam.
+
+Task 2:
+Save exam result to localStorage.
+
+Task 3:
+Show all previous results.
+
+Task 4:
+Add question difficulty:
+easy / medium / hard
+
+Task 5:
+Add exam category:
+HTML / CSS / JavaScript / Python
+
+Task 6:
+Add a timer.
+
+Task 7:
+Shuffle questions before running the exam.
+
+Task 8:
+Show correct answers after submit.
+
+Task 9:
+Add edit exam title.
+
+Task 10:
+Export exam to JSON file.
+
+Task 11:
+Import exam from JSON file.
+
+Task 12:
+Add pass/fail message:
+Pass if score is 60% or more.
+
+
+========================================================
+STEP 13 - OPTIONAL: SIMPLE RESULT MODEL
+========================================================
+
+Later you can add a new class:
+
+File:
+js/models/ExamResult.js
+
+Example:
+
+export class ExamResult {
+  constructor(studentName, examId, examTitle, score, totalQuestions) {
+    this.id = crypto.randomUUID();
+    this.studentName = studentName;
+    this.examId = examId;
+    this.examTitle = examTitle;
+    this.score = score;
+    this.totalQuestions = totalQuestions;
+    this.createdAt = new Date().toISOString();
+  }
+
+  getPercent() {
+    return Math.round((this.score / this.totalQuestions) * 100);
+  }
+
+  isPassed() {
+    return this.getPercent() >= 60;
+  }
+}
+
+
+========================================================
+FINAL SUMMARY
+========================================================
+
+This mini project teaches:
+
+- JSON data structure
+- Object-oriented JavaScript
+- Modules
+- localStorage
+- DOM manipulation
+- Event handling
+- Bootstrap UI
+- Separation of concerns
+
+Architecture:
+
+models:
+Define the data.
+
+services:
+Save and load data.
+
+ui:
+Render HTML.
+
+app.js:
+Connect events and logic.
