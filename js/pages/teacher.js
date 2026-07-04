@@ -1,3 +1,8 @@
+// 1. להוסיף את ה-import הזה ממש בשורה הראשונה למעלה:
+import { initDarkMode } from "../services/ThemeService.js";
+
+// 2. להוסיף את השורה הזו בתוך פונקציית הטעינה או בסוף הקובץ:
+initDarkMode();
 import { Exam } from "../models/Exam.js";
 import { Question } from "../models/Question.js";
 import { ExamService } from "../services/ExamService.js";
