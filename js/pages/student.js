@@ -62,3 +62,38 @@ examUI.renderExamList();
 const style = document.createElement('style');
 style.innerHTML = '.delete-btn { display: none !important; }';
 document.head.appendChild(style);
+
+// טעינת היסטוריה וסטטיסטיקות לסטודנט
+function loadStudentStats() {
+  const submissionsData = localStorage.getItem("quiz_submissions");
+  if (!submissionsData) return;
+
+  const allSubmissions = JSON.parse(submissionsData);
+  // סינון התוצאות השייכות אך ורק לסטודנט המחובר כרגע
+  const mySubmissions = allSubmissions.filter(s => s.studentName === currentUser.username);
+
+  if (mySubmissions.length === 0) return;
+
+  document.getElementById("totalTaken").textContent = mySubmissions.length;
+
+  let totalPercent = 0;
+  const tableBody = document.getElementById("historyTableBody");
+  tableBody.innerHTML = "";
+
+  mySubmissions.forEach(sub => {
+    totalPercent += sub.percent;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${sub.examTitle}</td>
+      <td>${sub.date}</td>
+      <td>${sub.score}/${sub.totalQuestions}</td>
+      <td class="fw-bold ${sub.percent >= 60 ? 'text-success' : 'text-danger'}">${sub.percent}%</td>
+    `;
+    tableBody.appendChild(row);
+  });
+
+  const avg = Math.round(totalPercent / mySubmissions.length);
+  document.getElementById("averageScore").textContent = `${avg}%`;
+}
+
+loadStudentStats();

@@ -140,15 +140,51 @@ export class ExamUI {
       }
     });
 
+    const totalQuestions = exam.questions.length;
+    const percent = Math.round((score / totalQuestions) * 100);
+
+    // --- קוד חדש: שמירת התוצאה בהיסטוריה ---
+    const currentUserData = localStorage.getItem("quiz_current_user");
+    if (currentUserData) {
+      const student = JSON.parse(currentUserData);
+      
+      // יצירת אובייקט תוצאה חדש
+      const newSubmission = {
+        id: crypto.randomUUID(),
+        examTitle: exam.title,
+        studentName: student.username,
+        score: score,
+        totalQuestions: totalQuestions,
+        percent: percent,
+        date: new Date().toLocaleString()
+      };
+
+      // שליפת היסטוריה קיימת או יצירת מערך חדש
+      const existingSubmissions = localStorage.getItem("quiz_submissions");
+      const submissions = existingSubmissions ? JSON.parse(existingSubmissions) : [];
+      
+      submissions.push(newSubmission);
+      localStorage.setItem("quiz_submissions", JSON.stringify(submissions));
+    }
+    // ----------------------------------------
+
     const resultDiv = document.createElement("div");
-    resultDiv.className = "alert alert-info mt-3";
+    resultDiv.className = "alert alert-info mt-3 text-center";
 
     resultDiv.innerHTML = `
-      <h5>Exam Result</h5>
-      <p>Score: ${score} / ${exam.questions.length}</p>
-      <p>Percent: ${Math.round((score / exam.questions.length) * 100)}%</p>
+      <h5>סיום מבחן!</h5>
+      <p>ציון: ${score} מתוך ${totalQuestions}</p>
+      <p>אחוז הצלחה: ${percent}%</p>
+      <p class="fw-bold ${percent >= 60 ? 'text-success' : 'text-danger'}">
+        ${percent >= 60 ? 'עברת בהצלחה! 🎉' : 'נכשלת במבחן 💔'}
+      </p>
     `;
 
     this.examRunnerElement.appendChild(resultDiv);
+    
+    // רענון אוטומטי של הדף אחרי 3 שניות כדי לעדכן את טבלת הציונים
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
   }
 }

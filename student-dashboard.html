@@ -18,8 +18,40 @@
   <div class="container py-2">
     <div class="row">
 
-      <div class="col-md-6">
-        <div class="card shadow-sm mb-4">
+      <div class="col-md-12 mb-4">
+        <div class="card shadow-sm bg-white p-3">
+          <div class="row text-center">
+            <div class="col-6 border-end">
+              <h6 class="text-muted">מבחנים שבוצעו</h6>
+              <h3 id="totalTaken">0</h3>
+            </div>
+            <div class="col-6">
+              <h6 class="text-muted">ממוצע ציונים</h6>
+              <h3 id="averageScore" class="text-primary">0%</h3>
+            </div>
+          </div>
+          <hr>
+          <h6>היסטוריית המבחנים שלי:</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped">
+              <thead>
+                <tr>
+                  <th>שם המבחן</th>
+                  <th>תאריך</th>
+                  <th>תוצאה</th>
+                  <th>ציון</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="4" class="text-muted text-center">טרם ביצעת מבחנים במערכת</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
           <div class="card-header bg-dark text-white">
             <h5 class="mb-0">מבחנים זמינים לביצוע</h5>
           </div>
@@ -32,8 +64,8 @@
         </div>
       </div>
 
-      <div class="col-md-6">
-        <div class="card shadow-sm id-none" id="runnerContainer">
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm d-none" id="runnerContainer">
           <div class="card-header bg-warning">
             <h5 class="mb-0">ביצוע מבחן פעיל</h5>
           </div>
@@ -43,8 +75,7 @@
         </div>
       </div>
 
-    </div>
-  </div>
+    </div> </div>
 
   <script type="module" src="js/pages/student.js"></script>
 </body>
