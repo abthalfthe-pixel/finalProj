@@ -12,23 +12,21 @@ const authService = new AuthService();
 const examService = new ExamService();
 const examUI = new ExamUI(examService);
 
-// 🔒 אבטחה: בדיקה שהמשתמש מחובר והוא אכן מורה
+// 🔒 אבטחה
 const currentUser = authService.getCurrentUser();
 if (!currentUser || currentUser.role !== "teacher") {
   alert("אזור זה מיועד למורים בלבד!");
   window.location.href = "index.html";
 }
 
-// עדכון כותרת ברוך הבא
 document.getElementById("welcomeTitle").textContent = `פאנל מורה - שלום, ${currentUser.username}`;
 
-// ניתוק מהמערכת
 document.getElementById("logoutBtn").addEventListener("click", () => {
   authService.logout();
   window.location.href = "index.html";
 });
 
-// משתנה שיחזיק את המבחן שנמצא כרגע בעבודה
+// משתני מצב לעריכה ויצירה
 let currentExam = null;
 let isEditingExisting = false; 
 
@@ -46,7 +44,7 @@ const examListElement = document.getElementById("examList");
 const formActionTitle = document.getElementById("formActionTitle");
 const clearEditBtn = document.getElementById("clearEditBtn");
 
-// הוספת שאלה למבחן הנוכחי
+// 1. הוספת שאלה למבחן (חדש או קיים בעריכה)
 addQuestionBtn.addEventListener("click", () => {
   const title = examTitleInput.value.trim();
   const questionText = questionTextInput.value.trim();
@@ -75,15 +73,17 @@ addQuestionBtn.addEventListener("click", () => {
     return;
   }
 
-  // שיוך אוטומטי למרצה המחובר
+  // אם אנחנו יוצרים מבחן חדש מאפס
   if (!currentExam) {
     currentExam = new Exam(title, currentUser.username);
   } else {
-    currentExam.title = title;
+    currentExam.title = title; // עדכון השם למקרה שהשתנה בתיבה
   }
 
   const correctAnswerIndex = correctAnswerNumber - 1;
   const question = new Question(questionText, answers, correctAnswerIndex);
+  
+  // הוספת השאלה למערך השאלות של האובייקט
   currentExam.addQuestion(question);
 
   examUI.showBuilderMessage(
@@ -94,24 +94,26 @@ addQuestionBtn.addEventListener("click", () => {
   clearQuestionInputs();
 });
 
-// שמירת המבחן (חדש או מעודכן) ב-Storage
+// 2. שמירת המבחן ועדכונו האמיתי ב-Storage
 saveExamBtn.addEventListener("click", () => {
   const title = examTitleInput.value.trim();
-  
+  if (!title) {
+    examUI.showBuilderMessage("אנא הזן שם מבחן.", "danger");
+    return;
+  }
+
+  const allExams = examService.getAllExams();
+
   if (isEditingExisting && currentExam) {
-    if (title) currentExam.title = title;
+    // מוד מצב עריכה: מעדכנים את השם ודורסים את הישן ב-Storage
+    currentExam.title = title;
     
-    const allExams = examService.getAllExams();
     const updatedExams = allExams.map(e => e.id === currentExam.id ? currentExam : e);
     localStorage.setItem(examService.storageKey, JSON.stringify(updatedExams));
-    examUI.showBuilderMessage("המבחן עודכן בהצלחה!", "success");
+    examUI.showBuilderMessage("המבחן עודכן בהצלחה בזיכרון המערכת!", "success");
   } else {
+    // מוד מבחן חדש: בודקים שיש לפחות שאלה אחת ושומרים
     if (!currentExam) {
-      if (!title) {
-        examUI.showBuilderMessage("אנא הזן שם מבחן תחילה.", "danger");
-        return;
-      }
-      // הוספת שם המרצה גם ביצירה ישירה
       currentExam = new Exam(title, currentUser.username);
     }
     if (currentExam.getQuestionCount() === 0) {
@@ -123,9 +125,7 @@ saveExamBtn.addEventListener("click", () => {
   }
 
   resetFormState();
-  examUI.renderExamList();
-  loadTeacherSubmissions();
-  addActionButtonsToUI();
+  refreshDashboard();
 });
 
 // ביטול מצב עריכה
@@ -151,27 +151,6 @@ function clearQuestionInputs() {
   correctAnswerInput.value = "";
 }
 
-// טעינת טבלת ההגשות של התלמידים במערכת
-function loadTeacherSubmissions() {
-  const submissionsData = localStorage.getItem("quiz_submissions");
-  const tableBody = document.getElementById("teacherSubmissionsTable");
-  if (!submissionsData || !tableBody) return;
-
-  const submissions = JSON.parse(submissionsData);
-  if (submissions.length === 0) return;
-
-  tableBody.innerHTML = "";
-  submissions.forEach(sub => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><strong>${sub.studentName}</strong></td>
-      <td>${sub.examTitle}</td>
-      <td><small>${sub.date}</small></td>
-      <td class="fw-bold ${sub.percent >= 60 ? 'text-success' : 'text-danger'}">${sub.percent}%</td>
-    `;
-    tableBody.appendChild(row);
-  });
-}
 
 // עדכון כפתורי הפעולה וסינון מבחנים של מרצים אחרים
 function addActionButtonsToUI() {
@@ -193,43 +172,78 @@ function addActionButtonsToUI() {
         return;
       }
 
-      if (card.querySelector(".edit-btn")) return;
+      // 1. הוספת כפתור "ערוך שאלות ושם" (הכפתור הכחול לטעינה לטופס)
+      if (!card.querySelector(".load-to-form-btn")) {
+        const loadBtn = document.createElement("button");
+        loadBtn.className = "btn btn-sm btn-outline-primary load-to-form-btn me-1";
+        loadBtn.textContent = "📝 ערוך שאלות ושם";
+        loadBtn.dataset.id = examId;
+        deleteBtn.parentNode.insertBefore(loadBtn, deleteBtn);
+      }
 
-      // יצירת כפתור ניהול וצפייה בציונים
-      const editBtn = document.createElement("button");
-      editBtn.className = "btn btn-sm btn-warning edit-btn me-1";
-      editBtn.textContent = "פרטי מבחן וציונים ➔";
-      editBtn.dataset.id = examId;
-      deleteBtn.parentNode.insertBefore(editBtn, deleteBtn);
+      // 2. 🎉 הוספת הכפתור הצהוב שמעביר לדף הציונים והפרטים (היה חסר!)
+      if (!card.querySelector(".edit-btn")) {
+        const editBtn = document.createElement("button");
+        editBtn.className = "btn btn-sm btn-warning edit-btn me-1";
+        editBtn.textContent = "ציוני סטודנטים ➔";
+        editBtn.dataset.id = examId;
+        deleteBtn.parentNode.insertBefore(editBtn, deleteBtn);
+      }
     }
   });
 }
 
-// 🎯 האזנה אחת מרכזית ותקינה ללחיצות על רשימת המבחנים
+// האזנה מרכזית ללחיצות ברשימת המבחנים
 examListElement.addEventListener("click", event => {
   const examId = event.target.dataset.id;
+  if (!examId) return;
 
-  // מעבר לדף הפרטים והציונים החדש
+  // א. כפתור ציונים (מעביר לעמוד הציונים)
   if (event.target.classList.contains("edit-btn")) {
     window.location.href = `exam-details.html?id=${examId}`;
   }
 
-  // מחיקה
-  if (event.target.classList.contains("delete-btn")) {
-    const confirmed = confirm("האם אתה בטוח שברצונך למחוק מבחן זה?");
-    if (!confirmed) return;
+  // ב. כפתור טעינת המבחן חזרה לטופס לצורך הוספת שאלות או עדכון שם
+  if (event.target.classList.contains("load-to-form-btn")) {
+    const allExams = examService.getAllExams();
+    const exam = allExams.find(e => e.id === examId);
+    if (!exam) return;
 
+    // שחזור מתודות ה-OOP של המחלקה שנמחקו בגלל ה-JSON
+    currentExam = new Exam(exam.title, exam.creator);
+    currentExam.id = exam.id;
+    currentExam.createdAt = exam.createdAt;
+    currentExam.questions = exam.questions || [];
+    
+    // הפיכת פונקציית addQuestion מחדש לזמינה על האובייקט המשוחזר
+    currentExam.addQuestion = function(q) { this.questions.push(q); };
+    currentExam.getQuestionCount = function() { return this.questions.length; };
+
+    isEditingExisting = true;
+
+    // עדכון הממשק החזותי של הטופס הימני
+    examTitleInput.value = currentExam.title;
+    formActionTitle.textContent = `עריכת מבחן קיים: ${currentExam.title}`;
+    saveExamBtn.textContent = "עדכן ושמור שינויים במבחן";
+    clearEditBtn.classList.remove("d-none");
+    
+    examUI.showBuilderMessage(`המבחן נטען לטופס! יש לו ${currentExam.getQuestionCount()} שאלות קיימות. כעת את יכולה להוסיף שאלות חדשות או לשנות את שם המבחן, ובסיום ללחוץ על הכפתור הכחול למטה.`, "info");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ג. כפתור מחיקה
+  if (event.target.classList.contains("delete-btn")) {
+    if (!confirm("האם אתה בטוח שברצונך למחוק מבחן זה?")) return;
     examService.deleteExam(examId);
-    if (currentExam && currentExam.id === examId) {
-      resetFormState();
-    }
-    examUI.renderExamList();
-    loadTeacherSubmissions();
-    addActionButtonsToUI();
+    if (currentExam && currentExam.id === examId) resetFormState();
+    refreshDashboard();
   }
 });
 
-// הפעלה ראשונית של הדף
-examUI.renderExamList();
-loadTeacherSubmissions();
-addActionButtonsToUI();
+function refreshDashboard() {
+  examUI.renderExamList();
+  addActionButtonsToUI();
+}
+
+// הרצה ראשונית
+refreshDashboard();
