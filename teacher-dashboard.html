@@ -20,8 +20,9 @@
 
       <div class="col-md-5">
         <div class="card mb-4 shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">יצירת מבחן חדש</h5>
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0" id="formActionTitle">יצירת מבחן חדש</h5>
+            <button id="clearEditBtn" class="btn btn-sm btn-light d-none">ביטול עריכה</button>
           </div>
           <div class="card-body">
             <div class="mb-3">
@@ -78,9 +79,27 @@
           </div>
         </div>
 
-        <div class="card shadow-sm d-none" id="previewContainer">
-          <div class="card-header bg-warning">תצוגה מקדימה של המבחן</div>
-          <div class="card-body" id="examRunner"></div>
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">תוצאות וציוני סטודנטים</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-striped text-center">
+                <thead>
+                  <tr>
+                    <th>שם הסטודנט</th>
+                    <th>שם המבחן</th>
+                    <th>תאריך הגשה</th>
+                    <th>ציון</th>
+                  </tr>
+                </thead>
+                <tbody id="teacherSubmissionsTable">
+                  <tr><td colspan="4" class="text-muted">אין עדיין הגשות במערכת</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

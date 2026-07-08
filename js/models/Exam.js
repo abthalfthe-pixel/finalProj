@@ -1,7 +1,8 @@
 export class Exam {
-  constructor(title) {
+  constructor(title, creator) {
     this.id = crypto.randomUUID();
     this.title = title;
+    this.creator = creator; // שם המורה או ה-ID שלו
     this.questions = [];
     this.createdAt = new Date().toISOString();
   }

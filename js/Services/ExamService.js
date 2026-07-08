@@ -16,7 +16,8 @@ export class ExamService {
     const plainExams = JSON.parse(data);
 
     return plainExams.map(examData => {
-      const exam = new Exam(examData.title);
+      // העברת השדה creator בשחזור האובייקט מה-localStorage
+      const exam = new Exam(examData.title, examData.creator); 
 
       exam.id = examData.id;
       exam.createdAt = examData.createdAt;

@@ -1,7 +1,7 @@
 export function initDarkMode() {
   // יצירת כפתור המעבר באופן דינמי בראש הדף
   const toggleBtn = document.createElement("button");
-  toggleBtn.className = "btn btn-sm btn-outline-warning position-fixed top-0 end-0 m-2";
+  toggleBtn.className = "btn btn-sm btn-outline-warning position-fixed bottom-0 start-0 m-3";
   toggleBtn.style.zIndex = "9999";
   toggleBtn.innerHTML = "🌓 מצב כהה/בהיר";
   document.body.appendChild(toggleBtn);

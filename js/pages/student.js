@@ -30,13 +30,16 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 const examListElement = document.getElementById("examList");
 const searchBar = document.getElementById("searchBar");
 
-// האזנה ללחיצה על מבחן ברשימה
 examListElement.addEventListener("click", event => {
   const examId = event.target.dataset.id;
 
   if (event.target.classList.contains("run-btn")) {
     const exam = examService.getExamById(examId);
     
+    // --- שורה חדשה: מציגה את אזור ביצוע המבחן הפעיל ---
+    document.getElementById("runnerContainer").classList.remove("d-none");
+    // --------------------------------------------------
+
     // הפעלת רץ המבחנים המקורי מהכיתה בתוך הלוח של הסטודנט
     examUI.renderExamRunner(exam);
     
