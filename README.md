@@ -55,3 +55,15 @@ my-quiz-system/
         ├── login.js
         ├── teacher.js
         └── student.js
+
+
+
++-------------------+             +-----------------------+
+|       Exam        |             |       Question        |
++-------------------+             +-----------------------+
+| - id (UUID)       |             | - text (String)       |
+| - title (String)  | 1       * | - answers (Array)     |
+| - creator (String)|------------>| - correctAnswerIndex  |
+| - questions []    |             +-----------------------+
+| - createdAt       |
++-------------------+
